@@ -1,0 +1,5 @@
+{
+  "name": "Puzzle Master",
+  "description": "Create and play custom puzzles from your own images with various piece shapes and difficulty levels.",
+  "requestFramePermissions": []
+}

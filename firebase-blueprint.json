@@ -1,0 +1,38 @@
+{
+  "entities": {
+    "Puzzle": {
+      "title": "Puzzle",
+      "description": "A puzzle created by a user",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "imageUrl": { "type": "string" },
+        "prompt": { "type": "string" },
+        "creatorEmail": { "type": "string" },
+        "isPublic": { "type": "boolean" },
+        "createdAt": { "type": "number" },
+        "settings": {
+          "type": "object",
+          "properties": {
+            "gridSize": {
+              "type": "object",
+              "properties": {
+                "rows": { "type": "number" },
+                "cols": { "type": "number" }
+              }
+            },
+            "shape": { "type": "string" },
+            "aspectRatio": { "type": "string" }
+          }
+        }
+      },
+      "required": ["id", "imageUrl", "creatorEmail", "isPublic", "createdAt", "settings"]
+    }
+  },
+  "firestore": {
+    "puzzles": {
+      "schema": "Puzzle",
+      "description": "Collection of all puzzles"
+    }
+  }
+}

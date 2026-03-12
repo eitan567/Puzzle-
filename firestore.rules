@@ -1,0 +1,53 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    // Collection: puzzles
+    // Fields:
+    //   - id: string (required)
+    //   - imageUrl: string (required)
+    //   - prompt: string (optional)
+    //   - creatorEmail: string (required)
+    //   - isPublic: boolean (required)
+    //   - createdAt: number (required)
+    //   - settings: map (required)
+    // ===============================================================
+
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(email) {
+      return isAuthenticated() && request.auth.token.email == email;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() &&
+        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
+          (request.auth.token.email == "eitan2007@gmail.com" && request.auth.token.email_verified == true));
+    }
+
+    function isValidPuzzle(data) {
+      return data.keys().hasAll(['id', 'imageUrl', 'creatorEmail', 'isPublic', 'createdAt', 'settings']) &&
+             data.id is string && data.id.size() < 100 &&
+             data.imageUrl is string && data.imageUrl.size() < 2000000 &&
+             data.creatorEmail is string && data.creatorEmail.size() < 100 &&
+             data.isPublic is bool &&
+             data.createdAt is number &&
+             data.settings is map;
+    }
+
+    match /puzzles/{puzzleId} {
+      allow read: if resource.data.isPublic == true || isOwner(resource.data.creatorEmail);
+      allow create: if isAuthenticated() && isValidPuzzle(request.resource.data) && isOwner(request.resource.data.creatorEmail);
+      allow update: if isAuthenticated() && isOwner(resource.data.creatorEmail) && isValidPuzzle(request.resource.data) && request.resource.data.creatorEmail == resource.data.creatorEmail;
+      allow delete: if isAuthenticated() && isOwner(resource.data.creatorEmail);
+    }
+    
+    match /users/{userId} {
+      allow read, write: if isAuthenticated() && request.auth.uid == userId;
+    }
+  }
+}
